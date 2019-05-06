@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Tetris</title>
+        <style>
+        
+            div.board{
+                position: absolute;
+                width: 300px;
+                height: 600px;
+                left: 0px;
+                top: 0px;
+                border: 1px solid black;
+            }
+            div.tetrisPane{
+                position: absolute;
+                left: 300px;
+                top: 0px;
+                width: 300px; 
+                height: 600px;
+            }
+            div.block{
+                position: absolute;
+                width: 29px;
+                height: 29px;
+                border: 1px solid black;
+                
+            }
+            
+        </style>
+        <script>
+            
+            
+            //sola ve sağa döndürme
+            //score ve info ekranı
+            //bir sonraki şekli gösterme
+            //ses efekti
+            //
+            
+            
+            var KEY_LEFT = 37;
+            var KEY_UP = 38;
+            var KEY_RIGHT = 39;
+            var KEY_DOWN = 40;
+            var SPACE = 32;
+            
+            var ROW = 20;
+            var COLUMN = 10;
+            
+            var isOver = false
+            
+            var board = []
+            for(var i=0;i<ROW;i++){
+                this.board[i] = []
+                for(var j=0;j<COLUMN;j++){
+                    this.board[i][j] = 0
+                }
+            }
+            
+            window.addEventListener("load",playTetris)
+            
+            function set(x,y){
+                    console.log("x:"+x+" y:"+y)
+                    
+                    for(var i=0;i<4;i++){
+                        for(var j=0;j<4;j++){
+                            if(this.currentShape.shape[i][j]>0){
+                                if(y+i >= ROW|| x+j<0 ||x+j >= COLUMN||board[y+i][x+j])
+                                    return true;
+                            }
+                        }
+                    }
+                    return false;
+            }
+            
+            function playTetris(){
+                this.currentShape = new Shape().getShape(getRandom())
+                console.log(currentShape.shape)
+                
+                var interval = setInterval(function(){
+                    
+                    if(check()){
+                        redraw()
+                    }
+                    
+                },400)
+                
+                document.body.addEventListener("keydown",function(kev){
+                    if(kev.keyCode == KEY_LEFT){
+                        moveLeft()
+                    }
+                    else if(kev.keyCode == KEY_RIGHT){
+                        moveRight()
+                    }
+                    else if(kev.keyCode == KEY_UP){
+                        //var shape = currentShape.shape
+                        //currentShape = rotate(shape)
+                        currentShape.prototype.rotate()
+                        redraw()
+                    }
+                    else if(kev.keyCode == KEY_DOWN){
+                        moveDown()
+                    }else if(kev.keyCode == SPACE){
+                        fall();
+                    }
+                })
+                
+                function moveLeft(){
+                    var x = currentShape.prototype.x
+                    var y = currentShape.prototype.y
+                    if(!set((x-1),y)){
+                        currentShape.prototype.x -= 1
+                        redraw()
+                    }
+                }
+                function moveRight(){
+                    var x = currentShape.prototype.x
+                    var y = currentShape.prototype.y
+                    if(!set((x+1),y))
+                        currentShape.prototype.x += 1
+                    redraw()
+                }
+                function rotate(piece){
+                    return [
+                        [piece[0][3], piece[1][3], piece[2][3], piece[3][3]],
+                        [piece[0][2], piece[1][2], piece[2][2], piece[3][2]],
+                        [piece[0][1], piece[1][1], piece[2][1], piece[3][1]],
+                        [piece[0][0], piece[1][0], piece[2][0], piece[3][0]]
+                      ];
+                }
+                function moveDown(){
+                    var x = currentShape.prototype.x
+                    var y = currentShape.prototype.y+1
+                    if(!set(x,y)){
+                        currentShape.prototype.y += 1
+                        redraw()
+                    }
+                }
+                
+                function fall(){
+                    var x = currentShape.prototype.x
+                    var y = currentShape.prototype.y
+                    while(!set(x,y+1)){
+                        
+                        currentShape.prototype.y += 1
+                        y++        
+                    }
+                    check()
+                    redraw()
+                    
+                    
+                }
+                
+                
+                
+                function redraw(){
+                    var elem = draw()
+                    document.body.innerHTML=''
+                    document.body.appendChild(elem)
+                    
+                }
+                
+                var color = ["yellow","cyan","orange","blue","red","green","purple"]
+                
+                function draw(){
+                    var board = put()
+                    var boardElem = document.createElement("div")
+                    for(var i=0;i<ROW;i++){
+                        for(var j=0;j<COLUMN;j++){
+                            var block = document.createElement('div')
+                            block.classList.add("block")
+                            if(board[i][j]>0){
+                                //block.classList.add("gotten")
+                                var cindex = board[i][j]
+                                console.log("color: "+color[cindex-1]+" "+board[i][j])
+                                block.style.backgroundColor = color[cindex-1]
+                            }
+                            block.style.top = (i*30)+"px"
+                            block.style.left = (j*30)+"px"
+                            boardElem.appendChild(block)
+                        }
+                    }
+                    boardElem.classList.add("board")
+                    var paneElem = document.createElement("div")
+                    paneElem.classList.add("tetrisPane")
+                    paneElem.append(boardElem);
+                    console.log("draw")
+                    return paneElem;
+                }  
+                
+                function check(){
+                    if(!isOver){
+                        var x = currentShape.prototype.x
+                        var y = currentShape.prototype.y+1
+                        if(set(x,y)){
+                            board = put()
+                            var res = deleteRow();
+                            board = res.board
+                            currentShape = new Shape().getShape(getRandom())
+                            currentShape.prototype.x = 3;
+                            currentShape.prototype.y = -1;
+                            console.log(currentShape)
+                            if(set(3,0)){
+                                isOver = true;
+                            }
+                        }
+                        else{
+                            currentShape.prototype.y += 1;
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+                
+                function deleteRow(){
+                    var newBoard = []
+                    var k = ROW
+                    for(var i=(ROW-1);i>=0;i--){
+                        for(var j = 0;j<COLUMN;j++){
+                            if(board[i][j]==0){
+                               newBoard[--k] = board[i].slice()
+                               break;
+                            }
+                        }
+                    }
+                    for(var i=0;i<k;i++){
+                        newBoard[i] = []
+                        for(var j=0;j<COLUMN;j++){
+                            newBoard[i][j]=0;
+                        }
+                    }
+                    return{
+                        "board" : newBoard
+                        
+                    }
+                }
+                    
+                function put(){
+                    
+                    var x = currentShape.prototype.x
+                    var y = currentShape.prototype.y
+                    
+                    var pane = board
+                    
+                    
+                    var newBoard = []
+                    for(var i=0;i<ROW;i++){
+                        newBoard[i] = pane[i].slice();
+                        
+                    }
+                    console.log("board "+newBoard[0][0])
+                    console.log(x)
+                    console.log(y)
+                    for (var i = 0; i < 4; i++)
+                        for (var j = 0; j < 4; j++)
+                          if (this.currentShape.shape[i][j]>0)
+                            newBoard[y+i][x+j] = this.currentShape.shape[i][j];
+                    return newBoard;
+                }
+            }
+            
+            function getRandom(){
+                return Math.floor(Math.random()*7)
+            }
+            
+            function Shape(){
+                this.x =3
+                this.y = -2
+                
+                this.getShape = function(index){
+                    switch(index){
+                        case 0:
+                            this.shape = new OShape();
+                            return this.shape
+                            break;
+                        case 1:
+                            this.shape = new IShape();
+                            return this.shape
+                            break;
+                        case 2:
+                            this.shape = new LShape();
+                            return this.shape
+                            break;
+                        case 3:
+                            this.shape = new JShape();
+                            return this.shape
+                            break;
+                        case 4:
+                            this.shape = new ZShape();
+                            return this.shape
+                            break;
+                        case 5:
+                            this.shape = new SShape();
+                            return this.shape
+                            break;
+                        case 6:
+                            this.shape = new TShape();
+                            return this.shape
+                            break;
+                    }
+                        
+                }
+                
+                
+            }
+            
+            Shape.prototype.rotate = function(){
+                var piece = currentShape.shape;
+                currentShape.shape = [
+                        [piece[0][3], piece[1][3], piece[2][3], piece[3][3]],
+                        [piece[0][2], piece[1][2], piece[2][2], piece[3][2]],
+                        [piece[0][1], piece[1][1], piece[2][1], piece[3][1]],
+                        [piece[0][0], piece[1][0], piece[2][0], piece[3][0]]
+                      ];
+                if(set(this.x,this.y)){
+                   currentShape.shape = piece 
+                }
+            }
+            
+            function OShape(){
+                this.prototype = new Shape()
+                this.color = "yellow"
+                this.shape = [[0, 0, 0, 0],
+                              [0, 1, 1, 0],
+                              [0, 1, 1, 0],
+                              [0, 0, 0, 0]]
+            }
+            function IShape(){
+                this.prototype = new Shape()
+                this.color = "cyan"
+                this.shape = [[0, 0, 0, 0],
+                              [2, 2, 2, 2],
+                              [0, 0, 0, 0],
+                              [0, 0, 0, 0]]
+            }
+            function LShape(){
+                this.prototype = new Shape()
+                this.color = "orange"
+                this.shape = [[0, 0, 0, 0],
+                              [0, 0, 3, 0],
+                              [3, 3, 3, 0],
+                              [0, 0, 0, 0]]
+            }
+            function JShape(){
+                this.prototype = new Shape()
+                this.color = "blue"
+                this.shape = [[0, 0, 0, 0],
+                              [4, 0, 0, 0],
+                              [4, 4, 4, 0],
+                              [0, 0, 0, 0]]
+            }
+            function ZShape(){
+                this.prototype = new Shape()
+                this.color = "red"
+                this.shape = [[0, 0, 0, 0],
+                              [5, 5, 0, 0],
+                              [0, 5, 5, 0],
+                              [0, 0, 0, 0]]
+            }
+            function SShape(){
+                this.prototype = new Shape()
+                this.color = "green"
+                this.shape = [[0, 0, 0, 0],
+                              [0, 6, 6, 0],
+                              [6, 6, 0, 0],
+                              [0, 0, 0, 0]]
+            }
+            function TShape(){
+                this.prototype = new Shape()
+                this.color = "purple"
+                this.shape = [[0, 0, 0, 0],
+                              [0, 7, 0, 0],
+                              [7, 7, 7, 0],
+                              [0, 0, 0, 0]]
+            }
+            
+            
+        </script>
+    </head>
+    <body>
+        
+    </body>
+</html>
